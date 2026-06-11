@@ -85,7 +85,7 @@ export const WatchSVG = forwardRef<SVGSVGElement, Props>(function WatchSVG(
   const numFont = fontById(d.numeralFont).family;
   const brandFont = fontById(d.brandFont).family;
 
-  const strapHalfW = Math.min(caseR * 0.54, 62);
+  const strapHalfW = Math.min(caseR * 0.47, 57);
   const strapTopEnd = 52;
   const strapBottomEnd = 596;
   const caseTop = CY - shapeInfo.topY;
@@ -141,16 +141,53 @@ export const WatchSVG = forwardRef<SVGSVGElement, Props>(function WatchSVG(
   // ------------------------------------------------------------- lugs & crown
   function lugs() {
     if (!shapeInfo.lugs) return null;
-    const lx = strapHalfW - 8;
-    const lugW = 15;
-    const ys = CY - caseR - 22;
-    const ye = CY + caseR - 18;
+    // tapered horns; the strap passes between them with a small clearance
+    const xi = strapHalfW + 2;
+    const xo = strapHalfW + 15;
+    const tipY = CY - caseR - 15;
+    const baseY = CY - caseR * 0.4;
+    const horn = (s: 1 | -1) => {
+      const x1 = CX + s * xi;
+      const x1t = CX + s * (xi + 1.5);
+      const x2 = CX + s * xo;
+      const x2t = CX + s * (xo - 3.5);
+      const midX = (x1t + x2t) / 2;
+      return (
+        `M ${x1},${baseY}` +
+        ` L ${x1t},${tipY + 7}` +
+        ` Q ${x1t},${tipY} ${midX},${tipY}` +
+        ` Q ${x2t},${tipY} ${x2t},${tipY + 7}` +
+        ` C ${x2t + s * 2},${tipY + 28} ${x2},${CY - caseR * 0.78} ${x2},${baseY}` +
+        ` Z`
+      );
+    };
     return (
-      <g fill={url('case')} stroke={shade(metal.lo, -0.2)} strokeWidth={1.2}>
-        <rect x={CX - lx - lugW} y={ys} width={lugW} height={42} rx={6} />
-        <rect x={CX + lx} y={ys} width={lugW} height={42} rx={6} />
-        <rect x={CX - lx - lugW} y={ye} width={lugW} height={42} rx={6} />
-        <rect x={CX + lx} y={ye} width={lugW} height={42} rx={6} />
+      <g>
+        {([1, -1] as const).map((s) => (
+          <g key={s}>
+            <path d={horn(s)} fill={url('lug')} stroke={shade(metal.lo, -0.25)} strokeWidth={1.1} />
+            <path
+              d={horn(s)}
+              fill={url('lug')}
+              stroke={shade(metal.lo, -0.25)}
+              strokeWidth={1.1}
+              transform={`translate(0 ${2 * CY}) scale(1 -1)`}
+            />
+          </g>
+        ))}
+      </g>
+    );
+  }
+
+  /** Integrated lug blocks for shapes without horns, so the strap doesn't float */
+  function strapConnectors() {
+    if (shapeInfo.lugs) return null;
+    if (d.strapType === 'oyster' || d.strapType === 'jubilee' || d.strapType === 'mesh') return null;
+    const w = strapHalfW + 6;
+    return (
+      <g fill={url('lug')} stroke={shade(metal.lo, -0.25)} strokeWidth={1.1}>
+        <rect x={CX - w} y={caseTop - 16} width={w * 2} height={32} rx={7} />
+        <rect x={CX - w} y={caseBottom - 16} width={w * 2} height={32} rx={7} />
       </g>
     );
   }
@@ -179,175 +216,264 @@ export const WatchSVG = forwardRef<SVGSVGElement, Props>(function WatchSVG(
   }
 
   function classicStrap(t: 'leather' | 'rubber') {
-    const wTop = strapHalfW;
-    const wEnd = strapHalfW * 0.84;
     const c = d.strapColor;
-    const stitch = luma(c) > 0.5 ? shade(c, -0.5) : mix(c, '#f2e9d8', 0.7);
-    const topLen = caseTop + 14 - strapTopEnd;
-    const top = (
-      <g>
-        <path
-          d={`M${CX - wEnd},${strapTopEnd + 16} L${CX - wTop},${caseTop + 14} L${CX + wTop},${caseTop + 14} L${CX + wEnd},${strapTopEnd + 16} Z`}
-          fill={url('strap')}
-          stroke={shade(c, -0.45)}
-          strokeWidth={1.5}
-        />
-        {t === 'leather' && (
-          <>
-            <path
-              d={`M${CX - wEnd + 6},${strapTopEnd + 22} L${CX - wTop + 6},${caseTop + 8}`}
-              stroke={stitch} strokeWidth={1.6} strokeDasharray="4 4" fill="none" opacity={0.9}
-            />
-            <path
-              d={`M${CX + wEnd - 6},${strapTopEnd + 22} L${CX + wTop - 6},${caseTop + 8}`}
-              stroke={stitch} strokeWidth={1.6} strokeDasharray="4 4" fill="none" opacity={0.9}
-            />
-          </>
-        )}
-        {t === 'rubber' &&
-          Array.from({ length: Math.floor(topLen / 13) }, (_, i) => {
-            const y = strapTopEnd + 26 + i * 13;
-            const f = (y - strapTopEnd) / topLen;
-            const w = wEnd + (wTop - wEnd) * f;
-            return <line key={i} x1={CX - w + 7} y1={y} x2={CX + w - 7} y2={y} stroke={shade(c, -0.3)} strokeWidth={2} opacity={0.55} />;
-          })}
-        {/* buckle */}
-        <rect x={CX - wEnd - 5} y={strapTopEnd - 4} width={wEnd * 2 + 10} height={24} rx={9}
-          fill="none" stroke={url('caseLine')} strokeWidth={7} />
-        <line x1={CX} y1={strapTopEnd - 5} x2={CX} y2={strapTopEnd + 12} stroke={metal.mid} strokeWidth={4.5} strokeLinecap="round" />
-        {/* keeper */}
-        <rect x={CX - wEnd - 3} y={strapTopEnd + 34} width={wEnd * 2 + 6} height={10} rx={4} fill={shade(c, -0.35)} />
-      </g>
-    );
-    const tipY = strapBottomEnd;
-    const bLen = tipY - (caseBottom - 14);
-    const bottom = (
-      <g>
-        <path
-          d={`M${CX - wTop},${caseBottom - 14} L${CX - wEnd},${tipY - 36} Q${CX - wEnd},${tipY} ${CX},${tipY} Q${CX + wEnd},${tipY} ${CX + wEnd},${tipY - 36} L${CX + wTop},${caseBottom - 14} Z`}
-          fill={url('strap')}
-          stroke={shade(c, -0.45)}
-          strokeWidth={1.5}
-        />
-        {t === 'leather' && (
-          <path
-            d={`M${CX - wTop + 6},${caseBottom - 6} L${CX - wEnd + 6},${tipY - 34} Q${CX - wEnd + 6},${tipY - 6} ${CX},${tipY - 6} Q${CX + wEnd - 6},${tipY - 6} ${CX + wEnd - 6},${tipY - 34} L${CX + wTop - 6},${caseBottom - 6}`}
-            fill="none" stroke={stitch} strokeWidth={1.6} strokeDasharray="4 4" opacity={0.9}
-          />
-        )}
-        {t === 'rubber' &&
-          Array.from({ length: Math.floor((bLen - 40) / 13) }, (_, i) => {
-            const y = caseBottom + 4 + i * 13;
-            const f = (y - (caseBottom - 14)) / bLen;
-            const w = wTop + (wEnd - wTop) * f;
-            return <line key={i} x1={CX - w + 7} y1={y} x2={CX + w - 7} y2={y} stroke={shade(c, -0.3)} strokeWidth={2} opacity={0.55} />;
-          })}
-        {[0, 1, 2, 3].map((i) => (
-          <circle key={i} cx={CX} cy={tipY - 56 - i * 19} r={3.6} fill={shade(c, -0.55)} />
-        ))}
-      </g>
-    );
+    const wLug = strapHalfW; // sits between the lugs
+    const wEnd = strapHalfW * 0.76;
+    const wTip = strapHalfW * 0.74;
+    const stitch = luma(c) > 0.5 ? shade(c, -0.5) : mix(c, '#f2e9d8', 0.65);
+    const edge = shade(c, -0.45);
+
+    const yBuckle = strapTopEnd + 12;
+    const yTopStart = yBuckle + 10;
+    const yJTop = caseTop + 12;
+    const yJBot = caseBottom - 12;
+    const yTip = strapBottomEnd;
+
+    const topPath =
+      `M ${CX - wEnd},${yTopStart}` +
+      ` C ${CX - wEnd - 1},${yTopStart + 42} ${CX - wLug},${yJTop - 40} ${CX - wLug},${yJTop}` +
+      ` L ${CX + wLug},${yJTop}` +
+      ` C ${CX + wLug},${yJTop - 40} ${CX + wEnd + 1},${yTopStart + 42} ${CX + wEnd},${yTopStart}` +
+      ` Z`;
+    const botPath =
+      `M ${CX - wLug},${yJBot}` +
+      ` C ${CX - wLug},${yJBot + 44} ${CX - wTip - 1},${yTip - 150} ${CX - wTip},${yTip - 44}` +
+      ` Q ${CX - wTip},${yTip} ${CX},${yTip}` +
+      ` Q ${CX + wTip},${yTip} ${CX + wTip},${yTip - 44}` +
+      ` C ${CX + wTip + 1},${yTip - 150} ${CX + wLug},${yJBot + 44} ${CX + wLug},${yJBot}` +
+      ` Z`;
+    const topStitch =
+      `M ${CX - wEnd + 5},${yTopStart + 5}` +
+      ` C ${CX - wEnd + 4},${yTopStart + 44} ${CX - wLug + 5},${yJTop - 38} ${CX - wLug + 5},${yJTop - 2}` +
+      ` M ${CX + wEnd - 5},${yTopStart + 5}` +
+      ` C ${CX + wEnd - 4},${yTopStart + 44} ${CX + wLug - 5},${yJTop - 38} ${CX + wLug - 5},${yJTop - 2}`;
+    const botStitch =
+      `M ${CX - wLug + 5},${yJBot + 2}` +
+      ` C ${CX - wLug + 5},${yJBot + 44} ${CX - wTip + 4},${yTip - 148} ${CX - wTip + 5},${yTip - 44}` +
+      ` Q ${CX - wTip + 5},${yTip - 5} ${CX},${yTip - 5}` +
+      ` Q ${CX + wTip - 5},${yTip - 5} ${CX + wTip - 5},${yTip - 44}` +
+      ` C ${CX + wTip - 4},${yTip - 148} ${CX + wLug - 5},${yJBot + 44} ${CX + wLug - 5},${yJBot + 2}`;
+
+    const wAtTop = (y: number) => wEnd + (wLug - wEnd) * ((y - yTopStart) / (yJTop - yTopStart));
+    const wAtBot = (y: number) => wLug + (wTip - wLug) * ((y - yJBot) / (yTip - 44 - yJBot));
+
+    const ribs: JSX.Element[] = [];
+    if (t === 'rubber') {
+      for (let y = yTopStart + 18; y < yJTop - 8; y += 12) {
+        const w = wAtTop(y) - 7;
+        ribs.push(<line key={`t${y}`} x1={CX - w} y1={y} x2={CX + w} y2={y} stroke={shade(c, -0.32)} strokeWidth={2.2} opacity={0.6} strokeLinecap="round" />);
+      }
+      for (let y = yJBot + 16; y < yTip - 52; y += 12) {
+        const w = wAtBot(y) - 7;
+        ribs.push(<line key={`b${y}`} x1={CX - w} y1={y} x2={CX + w} y2={y} stroke={shade(c, -0.32)} strokeWidth={2.2} opacity={0.6} strokeLinecap="round" />);
+      }
+    }
+
+    const keeper = (y: number) => {
+      const w = wAtTop(y + 5) + 3;
+      return (
+        <g key={y}>
+          <rect x={CX - w} y={y} width={w * 2} height={11} rx={4.5} fill={shade(c, -0.22)} stroke={edge} strokeWidth={1} />
+          <line x1={CX - w + 3} y1={y + 2.5} x2={CX + w - 3} y2={y + 2.5} stroke={shade(c, 0.18)} strokeWidth={1} opacity={0.6} />
+        </g>
+      );
+    };
+
     return (
       <g>
-        {top}
-        {bottom}
+        <clipPath id={id('strapClip')}>
+          <path d={topPath} />
+          <path d={botPath} />
+        </clipPath>
+        {/* free tail poking out above the buckle */}
+        <path
+          d={`M ${CX - wEnd * 0.84},${yBuckle + 6} L ${CX - wEnd * 0.78},${yBuckle - 30} Q ${CX},${yBuckle - 40} ${CX + wEnd * 0.78},${yBuckle - 30} L ${CX + wEnd * 0.84},${yBuckle + 6} Z`}
+          fill={url('strap')}
+          stroke={edge}
+          strokeWidth={1.2}
+        />
+        <path d={topPath} fill={url('strap')} stroke={edge} strokeWidth={1.4} />
+        <path d={botPath} fill={url('strap')} stroke={edge} strokeWidth={1.4} />
+        {t === 'leather' && (
+          <>
+            <path d={topPath} fill="#000" filter={url('grain')} opacity={luma(c) > 0.5 ? 0.14 : 0.26} />
+            <path d={botPath} fill="#000" filter={url('grain')} opacity={luma(c) > 0.5 ? 0.14 : 0.26} />
+            <path d={topStitch} fill="none" stroke={stitch} strokeWidth={1.5} strokeDasharray="4 3.6" opacity={0.95} />
+            <path d={botStitch} fill="none" stroke={stitch} strokeWidth={1.5} strokeDasharray="4 3.6" opacity={0.95} />
+          </>
+        )}
+        {ribs}
+        {/* tang buckle */}
+        <rect x={CX - wEnd - 7} y={yBuckle - 13} width={(wEnd + 7) * 2} height={27} rx={10} fill="none" stroke={url('lug')} strokeWidth={7} />
+        <rect x={CX - wEnd - 7} y={yBuckle - 13} width={(wEnd + 7) * 2} height={27} rx={10} fill="none" stroke={shade(metal.lo, -0.35)} strokeWidth={0.8} opacity={0.6} />
+        <line x1={CX} y1={yBuckle + 15} x2={CX} y2={yBuckle - 15} stroke={url('lug')} strokeWidth={4.5} strokeLinecap="round" />
+        {keeper(yTopStart + 24)}
+        {keeper(yTopStart + 42)}
+        {/* tail holes */}
+        {[0, 1, 2, 3].map((i) => (
+          <circle key={i} cx={CX} cy={yTip - 64 - i * 19} r={3.2} fill={shade(c, -0.6)} stroke={shade(c, -0.25)} strokeWidth={0.8} />
+        ))}
+        {/* case contact shadow */}
+        <g clipPath={url('strapClip')}>
+          <ellipse cx={CX} cy={caseTop + 6} rx={strapHalfW + 16} ry={17} fill="#000" opacity={0.38} filter={url('contact')} />
+          <ellipse cx={CX} cy={caseBottom - 6} rx={strapHalfW + 16} ry={17} fill="#000" opacity={0.38} filter={url('contact')} />
+        </g>
       </g>
     );
   }
 
   function natoStrap() {
-    const w = strapHalfW * 0.94;
+    const wN = strapHalfW * 0.94;
     const c = d.strapColor;
-    const stripeW = w * 0.34;
-    const tipY = strapBottomEnd;
+    const yTop = strapTopEnd - 2;
+    const yTip = strapBottomEnd;
+    const bandH = yTip - yTop;
+    const stripeW = wN * 0.24;
+    const keeperMetal = (y: number) => (
+      <g key={y}>
+        <rect x={CX - wN - 3} y={y} width={wN * 2 + 6} height={10} rx={4} fill={url('lug')} stroke={shade(metal.lo, -0.3)} strokeWidth={0.9} />
+        <line x1={CX - wN} y1={y + 2} x2={CX + wN} y2={y + 2} stroke="#fff" strokeWidth={0.8} opacity={0.35} />
+      </g>
+    );
     return (
       <g>
-        <path
-          d={`M${CX - w},${strapTopEnd} L${CX + w},${strapTopEnd} L${CX + w},${tipY - 26} Q${CX + w},${tipY} ${CX},${tipY} Q${CX - w},${tipY} ${CX - w},${tipY - 26} Z`}
-          fill={c}
-          stroke={shade(c, -0.45)}
-          strokeWidth={1.5}
-        />
-        <rect x={CX - w * 0.78} y={strapTopEnd} width={stripeW} height={tipY - strapTopEnd - 10} fill={d.accentColor} opacity={0.92} />
-        <rect x={CX + w * 0.78 - stripeW} y={strapTopEnd} width={stripeW} height={tipY - strapTopEnd - 10} fill={d.accentColor} opacity={0.92} />
-        <rect x={CX - w * 0.06} y={strapTopEnd} width={w * 0.12} height={tipY - strapTopEnd - 10} fill={shade(c, -0.35)} opacity={0.6} />
-        {/* fabric weave */}
-        {Array.from({ length: Math.floor((tipY - strapTopEnd) / 7) }, (_, i) => (
-          <line key={i} x1={CX - w} y1={strapTopEnd + 4 + i * 7} x2={CX + w} y2={strapTopEnd + 4 + i * 7} stroke="#000" strokeWidth={1} opacity={0.08} />
-        ))}
-        {/* metal keepers + buckle */}
-        <rect x={CX - w - 3} y={strapTopEnd + 8} width={w * 2 + 6} height={13} rx={5} fill={url('caseLine')} />
-        <rect x={CX - w - 3} y={caseTop - 34} width={w * 2 + 6} height={11} rx={5} fill={url('caseLine')} />
-        <rect x={CX - w - 3} y={caseBottom + 24} width={w * 2 + 6} height={11} rx={5} fill={url('caseLine')} />
-        <rect x={CX - w - 3} y={caseBottom + 78} width={w * 2 + 6} height={11} rx={5} fill={url('caseLine')} />
+        <clipPath id={id('natoClip')}>
+          <rect x={CX - wN} y={yTop} width={wN * 2} height={bandH} rx={13} />
+        </clipPath>
+        <rect x={CX - wN} y={yTop} width={wN * 2} height={bandH} rx={13} fill={c} stroke={shade(c, -0.45)} strokeWidth={1.4} />
+        <g clipPath={url('natoClip')}>
+          <rect x={CX - wN} y={yTop} width={stripeW} height={bandH} fill={d.accentColor} opacity={0.9} />
+          <rect x={CX + wN - stripeW} y={yTop} width={stripeW} height={bandH} fill={d.accentColor} opacity={0.9} />
+          <rect x={CX - wN} y={yTop} width={wN * 2} height={bandH} fill={url('natoWeave')} />
+          <rect x={CX - wN} y={yTop} width={wN * 2} height={bandH} fill={url('braceletShade')} opacity={0.7} />
+          {/* case contact shadow */}
+          <ellipse cx={CX} cy={caseTop + 4} rx={wN + 14} ry={16} fill="#000" opacity={0.4} filter={url('contact')} />
+          <ellipse cx={CX} cy={caseBottom - 4} rx={wN + 14} ry={16} fill="#000" opacity={0.4} filter={url('contact')} />
+        </g>
+        {/* hardware */}
+        <rect x={CX - wN - 5} y={yTop + 16} width={(wN + 5) * 2} height={24} rx={8} fill="none" stroke={url('lug')} strokeWidth={6} />
+        <line x1={CX} y1={yTop + 42} x2={CX} y2={yTop + 13} stroke={url('lug')} strokeWidth={4} strokeLinecap="round" />
+        {keeperMetal(caseTop - 32)}
+        {keeperMetal(caseBottom + 22)}
+        {keeperMetal(caseBottom + 74)}
       </g>
     );
   }
 
   function bracelet(t: 'oyster' | 'jubilee' | 'mesh') {
-    const rows: JSX.Element[] = [];
-    const linkH = t === 'mesh' ? 7 : 21;
-    const span = (y: number, end: number, dir: 1 | -1) => {
-      const out: number[] = [];
-      for (let yy = y; dir > 0 ? yy < end : yy > end; yy += dir * linkH) out.push(yy);
-      return out;
-    };
-    const topYs = span(caseTop + 6 - linkH, strapTopEnd, -1);
-    const botYs = span(caseBottom - 6, strapBottomEnd - linkH, 1);
+    const yTopEnd = strapTopEnd - 6;
+    const yBotEnd = strapBottomEnd;
+    const yJTop = caseTop + 8;
+    const yJBot = caseBottom - 8;
     const taper = (y: number) => {
-      const dist = Math.abs(y - CY) - caseR;
-      const f = Math.max(0, Math.min(1, dist / 240));
-      return strapHalfW * (1 - 0.16 * f);
+      const dist = Math.max(0, Math.abs(y - CY) - caseR * 0.9);
+      const f = Math.min(1, dist / 260);
+      return strapHalfW * (1 - 0.18 * f);
     };
-    const drawRow = (y: number, i: number, keyP: string) => {
-      const w = taper(y);
-      if (t === 'mesh') {
-        rows.push(
-          <g key={`${keyP}${i}`}>
-            <rect x={CX - w} y={y} width={w * 2} height={linkH} fill={i % 2 ? metal.mid : mix(metal.mid, metal.hi, 0.3)} />
-            <line x1={CX - w} y1={y} x2={CX + w} y2={y} stroke={metal.lo} strokeWidth={0.8} opacity={0.7} />
-          </g>,
-        );
-        return;
-      }
-      const tone = i % 2 ? 0 : 0.12;
+    const sil = (yA: number, yB: number) =>
+      `M ${CX - taper(yA)},${yA} L ${CX - taper(yB)},${yB} L ${CX + taper(yB)},${yB} L ${CX + taper(yA)},${yA} Z`;
+    const topSil = sil(yTopEnd, yJTop);
+    const botSil = sil(yJBot, yBotEnd);
+    const dark = shade(metal.lo, -0.55);
+
+    const claspY = yBotEnd - 110;
+    const claspH = 54;
+    const claspW = taper(claspY + claspH / 2);
+
+    const cells: JSX.Element[] = [];
+    const linkH = t === 'jubilee' ? 16 : 20;
+    const emitRow = (y: number, key: string) => {
+      const w = taper(y + linkH / 2);
+      const h = linkH - 2;
       if (t === 'oyster') {
-        const cw = w * 0.78;
-        rows.push(
-          <g key={`${keyP}${i}`} stroke={shade(metal.lo, -0.15)} strokeWidth={1}>
-            <rect x={CX - w} y={y} width={w - cw / 2 - 1} height={linkH - 1.5} rx={4} fill={mix(metal.mid, metal.lo, 0.25 - tone)} />
-            <rect x={CX - cw / 2} y={y} width={cw} height={linkH - 1.5} rx={4} fill={mix(metal.hi, metal.mid, 0.35 - tone)} />
-            <rect x={CX + cw / 2 + 1} y={y} width={w - cw / 2 - 1} height={linkH - 1.5} rx={4} fill={mix(metal.mid, metal.lo, 0.25 - tone)} />
+        const cg = 1.5;
+        const total = w * 2 - cg * 2;
+        const ow = total * 0.3;
+        const cw = total * 0.4;
+        cells.push(
+          <g key={key}>
+            <rect x={CX - w} y={y} width={ow} height={h} rx={4} fill={url('linkOut')} />
+            <rect x={CX - w + ow + cg} y={y} width={cw} height={h} rx={4} fill={url('linkMid')} />
+            <rect x={CX + w - ow} y={y} width={ow} height={h} rx={4} fill={url('linkOut')} />
           </g>,
         );
       } else {
-        // jubilee: five links
-        const widths = [0.24, 0.16, 0.2, 0.16, 0.24];
-        let xAcc = CX - w;
-        const cells = widths.map((fr, k) => {
-          const cw2 = w * 2 * fr - 1;
-          const cell = (
-            <rect key={k} x={xAcc} y={y} width={cw2} height={linkH - 1.5} rx={4}
-              fill={k % 2 ? mix(metal.hi, metal.mid, 0.25 - tone) : mix(metal.mid, metal.lo, 0.3 - tone)} />
-          );
-          xAcc += cw2 + 1;
-          return cell;
-        });
-        rows.push(
-          <g key={`${keyP}${i}`} stroke={shade(metal.lo, -0.15)} strokeWidth={0.8}>
-            {cells}
+        const fr = [0.26, 0.14, 0.16, 0.14, 0.26];
+        const cg = 1.2;
+        const total = w * 2 - cg * 4;
+        let xA = CX - w;
+        cells.push(
+          <g key={key}>
+            {fr.map((f2, k) => {
+              const cw = total * f2;
+              const cell = <rect key={k} x={xA} y={y} width={cw} height={h} rx={3.5} fill={k === 0 || k === 4 ? url('linkOut') : url('linkMid')} />;
+              xA += cw + cg;
+              return cell;
+            })}
           </g>,
         );
       }
     };
-    topYs.forEach((y, i) => drawRow(y, i, 't'));
-    botYs.forEach((y, i) => drawRow(y, i, 'b'));
+
+    const endLink = (yEdge: number, s: 1 | -1, key: string) => {
+      const y2 = yEdge + s * 26;
+      const wA = strapHalfW + 1;
+      const wB = taper(y2);
+      return (
+        <g key={key}>
+          <path
+            d={`M ${CX - wA},${yEdge} L ${CX - wB},${y2} L ${CX + wB},${y2} L ${CX + wA},${yEdge} Z`}
+            fill={url('linkOut')}
+            stroke={shade(metal.lo, -0.3)}
+            strokeWidth={0.8}
+          />
+          <line x1={CX - wB * 0.36} y1={Math.min(yEdge, y2) + 4} x2={CX - wB * 0.36} y2={Math.max(yEdge, y2) - 4} stroke={dark} strokeWidth={1} opacity={0.5} />
+          <line x1={CX + wB * 0.36} y1={Math.min(yEdge, y2) + 4} x2={CX + wB * 0.36} y2={Math.max(yEdge, y2) - 4} stroke={dark} strokeWidth={1} opacity={0.5} />
+        </g>
+      );
+    };
+
+    if (t !== 'mesh') {
+      for (let y = yJTop - 28 - linkH; y > yTopEnd - linkH; y -= linkH) emitRow(y, `t${y}`);
+      // run continuously — the clasp plate is drawn on top of the rows
+      for (let y = yJBot + 28; y < yBotEnd; y += linkH) emitRow(y, `b${y}`);
+    }
+
     return (
       <g>
-        {rows}
-        {/* clasp hint */}
-        <rect x={CX - taper(strapBottomEnd - 70)} y={strapBottomEnd - 78} width={taper(strapBottomEnd - 70) * 2} height={30} rx={5}
-          fill="none" stroke={metal.lo} strokeWidth={1.6} opacity={0.85} />
+        <clipPath id={id('braceletClip')}>
+          <path d={topSil} />
+          <path d={botSil} />
+        </clipPath>
+        <path d={topSil} fill={dark} />
+        <path d={botSil} fill={dark} />
+        {t === 'mesh' ? (
+          <g clipPath={url('braceletClip')}>
+            <path d={topSil} fill={url('caseLine')} />
+            <path d={botSil} fill={url('caseLine')} />
+            <path d={topSil} fill={url('meshPat')} />
+            <path d={botSil} fill={url('meshPat')} />
+          </g>
+        ) : (
+          <g clipPath={url('braceletClip')}>{cells}</g>
+        )}
+        {endLink(yJTop, -1, 'elTop')}
+        {endLink(yJBot, 1, 'elBot')}
+        {/* clasp plate */}
+        <g>
+          <rect x={CX - claspW + 1} y={claspY} width={claspW * 2 - 2} height={claspH} rx={9}
+            fill={url('linkOut')} stroke={shade(metal.lo, -0.3)} strokeWidth={1} />
+          <line x1={CX - claspW + 9} y1={claspY + claspH / 2} x2={CX + claspW - 9} y2={claspY + claspH / 2} stroke={dark} strokeWidth={1.2} opacity={0.55} />
+          <path d={`M ${CX},${claspY + claspH / 2 - 7} L ${CX + 5},${claspY + claspH / 2} L ${CX},${claspY + claspH / 2 + 7} L ${CX - 5},${claspY + claspH / 2} Z`}
+            fill="none" stroke={shade(metal.lo, -0.2)} strokeWidth={1} opacity={0.8} />
+        </g>
+        {/* wrist curvature + case contact shadow */}
+        <g clipPath={url('braceletClip')}>
+          <path d={topSil} fill={url('braceletShade')} />
+          <path d={botSil} fill={url('braceletShade')} />
+          <ellipse cx={CX} cy={caseTop + 4} rx={strapHalfW + 14} ry={15} fill="#000" opacity={0.38} filter={url('contact')} />
+          <ellipse cx={CX} cy={caseBottom - 4} rx={strapHalfW + 14} ry={15} fill="#000" opacity={0.38} filter={url('contact')} />
+        </g>
       </g>
     );
   }
@@ -792,7 +918,7 @@ export const WatchSVG = forwardRef<SVGSVGElement, Props>(function WatchSVG(
 
     const renderHand = (shape: ReturnType<typeof handShape>, angle: number, key: string) => (
       <g key={key} transform={`translate(${CX} ${CY}) rotate(${angle})`}>
-        <path d={shape.d} transform="translate(1.6 2.4)" fill="#000" opacity={0.28} />
+        <path d={shape.d} transform="translate(2 3)" fill="#000" opacity={0.3} filter={url('handShadow')} />
         <path d={shape.d} fill={url('hand')} stroke={handMetal.lo} strokeWidth={0.7} strokeLinejoin="round" />
         {shape.emblem && (
           <g>
@@ -843,6 +969,46 @@ export const WatchSVG = forwardRef<SVGSVGElement, Props>(function WatchSVG(
         {metalGrad('hand', handMetal)}
         {metalGrad('marker', markerMetal)}
         {metalGrad('bezelMetal', metal)}
+        <linearGradient id={id('lug')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={metal.hi} />
+          <stop offset="0.5" stopColor={metal.mid} />
+          <stop offset="1" stopColor={metal.lo} />
+        </linearGradient>
+        <linearGradient id={id('linkOut')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={mix(metal.hi, metal.mid, 0.45)} />
+          <stop offset="0.45" stopColor={metal.mid} />
+          <stop offset="1" stopColor={shade(metal.lo, -0.08)} />
+        </linearGradient>
+        <linearGradient id={id('linkMid')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={metal.hi} />
+          <stop offset="0.4" stopColor={mix(metal.hi, metal.mid, 0.55)} />
+          <stop offset="1" stopColor={metal.mid} />
+        </linearGradient>
+        <linearGradient id={id('braceletShade')} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#000" stopOpacity="0.34" />
+          <stop offset="0.15" stopColor="#000" stopOpacity="0" />
+          <stop offset="0.85" stopColor="#000" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity="0.34" />
+        </linearGradient>
+        <pattern id={id('meshPat')} width="7" height="6" patternUnits="userSpaceOnUse">
+          <path d="M0,1.5 Q1.75,4 3.5,1.5 T7,1.5" fill="none" stroke="#000" strokeWidth="1.1" opacity="0.3" />
+          <path d="M0,4.5 Q1.75,7 3.5,4.5 T7,4.5" fill="none" stroke="#fff" strokeWidth="1" opacity="0.16" />
+        </pattern>
+        <pattern id={id('natoWeave')} width="4" height="4" patternUnits="userSpaceOnUse">
+          <path d="M0,2 L2,0" stroke="#000" strokeWidth="0.8" opacity="0.14" />
+          <path d="M2,4 L4,2" stroke="#fff" strokeWidth="0.8" opacity="0.08" />
+        </pattern>
+        <filter id={id('contact')} x="-40%" y="-150%" width="180%" height="400%">
+          <feGaussianBlur stdDeviation="5" />
+        </filter>
+        <filter id={id('handShadow')} x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="1.7" />
+        </filter>
+        <filter id={id('grain')}>
+          <feTurbulence type="fractalNoise" baseFrequency="0.24" numOctaves="3" seed="7" result="n" />
+          <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.9 0.9 0.9 0 -1.1" />
+          <feComposite operator="in" in2="SourceGraphic" />
+        </filter>
         <linearGradient id={id('bezelInsert')} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={shade(d.bezelColor, 0.18)} />
           <stop offset="0.5" stopColor={d.bezelColor} />
@@ -894,6 +1060,7 @@ export const WatchSVG = forwardRef<SVGSVGElement, Props>(function WatchSVG(
       )}
 
       {strapPieces()}
+      {strapConnectors()}
       {lugs()}
       {crown()}
       {caseBody()}
@@ -917,6 +1084,21 @@ export const WatchSVG = forwardRef<SVGSVGElement, Props>(function WatchSVG(
       </g>
 
       {bezel()}
+
+      {/* rim lighting on the bezel edge */}
+      {(() => {
+        const r = bezelOuter - 1;
+        const [ax, ay] = xy(r, 300);
+        const [bx, by] = xy(r, 60);
+        const [cx2, cy2] = xy(r, 120);
+        const [dx2, dy2] = xy(r, 240);
+        return (
+          <g fill="none" pointerEvents="none">
+            <path d={`M ${ax},${ay} A ${r},${r} 0 0 1 ${bx},${by}`} stroke="#fff" strokeWidth={1.6} opacity={0.2} strokeLinecap="round" />
+            <path d={`M ${cx2},${cy2} A ${r},${r} 0 0 1 ${dx2},${dy2}`} stroke="#000" strokeWidth={1.6} opacity={0.22} strokeLinecap="round" />
+          </g>
+        );
+      })()}
     </svg>
   );
 });

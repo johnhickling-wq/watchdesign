@@ -8,16 +8,19 @@ import {
 } from '../model/colors';
 import { FONTS } from '../model/fonts';
 import {
-  BEZEL_LABELS, CASE_SHAPE_LABELS, DATE_LABELS, HAND_COLOR_LABELS, HAND_LABELS,
-  INDEX_LABELS, MARKER_LABELS, MARK_LABELS, STRAP_LABELS, TEXTURE_LABELS, TRACK_LABELS,
+  BEZEL_LABELS, CASE_SHAPE_LABELS, CROWN_LABELS, DATE_LABELS, FINISH_LABELS,
+  HAND_COLOR_LABELS, HAND_LABELS, INDEX_LABELS, LEATHER_LABELS, LUG_LABELS,
+  MARKER_LABELS, MARK_LABELS, STRAP_LABELS, TEXTURE_LABELS, TRACK_LABELS,
 } from '../model/labels';
 import { randomModelName } from '../model/random';
 import type {
-  BezelStyle, CaseShape, DialTexture, FontId, HandColor, HandStyle, IndexStyle,
-  LogoMark, MarkerColor, MaterialId, MinuteTrack, StrapType, WatchDesign,
+  BezelStyle, CaseFinish, CaseShape, CrownStyle, DialTexture, FontId, HandColor,
+  HandStyle, IndexStyle, LeatherFinish, LogoMark, LugStyle, MarkerColor, MaterialId,
+  MinuteTrack, StrapType, WatchDesign,
 } from '../model/types';
 import {
-  BezelIcon, CaseShapeIcon, HandIcon, IndexIcon, MarkIcon, StrapIcon, TextureIcon, TrackIcon,
+  BezelIcon, CaseShapeIcon, CrownIcon, HandIcon, IndexIcon, LeatherIcon, LugIcon,
+  MarkIcon, StrapIcon, TextureIcon, TrackIcon,
 } from '../render/icons';
 import {
   OptionGrid, Row, Section, Segment, SliderRow, SwatchRow, TextRow, Toggle, type Opt,
@@ -51,6 +54,18 @@ const STRAPS = (Object.keys(STRAP_LABELS) as StrapType[]).map((v): Opt<StrapType
 }));
 const MARKS = (Object.keys(MARK_LABELS) as LogoMark[]).map((v): Opt<LogoMark> => ({
   value: v, label: MARK_LABELS[v], icon: <MarkIcon mark={v} />,
+}));
+const LUGS = (Object.keys(LUG_LABELS) as LugStyle[]).map((v): Opt<LugStyle> => ({
+  value: v, label: LUG_LABELS[v], icon: <LugIcon style={v} />,
+}));
+const CROWNS = (Object.keys(CROWN_LABELS) as CrownStyle[]).map((v): Opt<CrownStyle> => ({
+  value: v, label: CROWN_LABELS[v], icon: <CrownIcon style={v} />,
+}));
+const FINISHES = (Object.keys(FINISH_LABELS) as CaseFinish[]).map((v): Opt<CaseFinish> => ({
+  value: v, label: FINISH_LABELS[v],
+}));
+const LEATHERS = (Object.keys(LEATHER_LABELS) as LeatherFinish[]).map((v): Opt<LeatherFinish> => ({
+  value: v, label: LEATHER_LABELS[v], icon: <LeatherIcon finish={v} />,
 }));
 
 const MATERIAL_OPTS = (Object.keys(MATERIALS) as MaterialId[]).map((v): Opt<MaterialId> => ({
@@ -90,7 +105,9 @@ const FONT_OPTS: Opt<FontId>[] = FONTS.map((f) => ({
 }));
 
 export function ControlPanel({ design: d, onPatch }: Props) {
-  const metalStrap = d.strapType === 'oyster' || d.strapType === 'jubilee' || d.strapType === 'mesh';
+  const metalStrap =
+    d.strapType === 'oyster' || d.strapType === 'jubilee' || d.strapType === 'president' || d.strapType === 'mesh';
+  const shapedCase = d.caseShape === 'tonneau' || d.caseShape === 'square' || d.caseShape === 'octagon';
   return (
     <div className="control-panel">
       <Section title="Case" emoji="⬡" defaultOpen>
@@ -100,7 +117,23 @@ export function ControlPanel({ design: d, onPatch }: Props) {
         <Row label="Material">
           <OptionGrid options={MATERIAL_OPTS} value={d.caseMaterial} onChange={(caseMaterial) => onPatch({ caseMaterial })} columns={3} />
         </Row>
+        <Row label="Finish">
+          <Segment options={FINISHES} value={d.caseFinish} onChange={(caseFinish) => onPatch({ caseFinish })} />
+        </Row>
         <SliderRow label="Diameter" min={36} max={46} value={d.caseMm} display={`${d.caseMm} mm`} onChange={(caseMm) => onPatch({ caseMm })} />
+        <Row label="Lugs">
+          <OptionGrid options={LUGS} value={d.lugStyle} onChange={(lugStyle) => onPatch({ lugStyle })} columns={3} />
+        </Row>
+        {shapedCase && d.lugStyle !== 'integrated' && (
+          <p className="hint">Shaped cases use fitted strap mounts — lug styles show on round and cushion cases.</p>
+        )}
+        {d.lugStyle !== 'integrated' && (
+          <SliderRow label="Lug width" min={18} max={24} value={d.lugWidthMm} display={`${d.lugWidthMm} mm`} onChange={(lugWidthMm) => onPatch({ lugWidthMm })} />
+        )}
+        <Row label="Crown">
+          <OptionGrid options={CROWNS} value={d.crownStyle} onChange={(crownStyle) => onPatch({ crownStyle })} columns={3} />
+        </Row>
+        <Toggle label="Crown guards" checked={d.crownGuards} onChange={(crownGuards) => onPatch({ crownGuards })} />
       </Section>
 
       <Section title="Bezel" emoji="◎">
@@ -192,10 +225,15 @@ export function ControlPanel({ design: d, onPatch }: Props) {
 
       <Section title="Strap & bracelet" emoji="〰️">
         <Row label="Type">
-          <OptionGrid options={STRAPS} value={d.strapType} onChange={(strapType) => onPatch({ strapType })} columns={3} />
+          <OptionGrid options={STRAPS} value={d.strapType} onChange={(strapType) => onPatch({ strapType })} columns={4} />
         </Row>
+        {d.strapType === 'leather' && (
+          <Row label="Leather">
+            <OptionGrid options={LEATHERS} value={d.leatherFinish} onChange={(leatherFinish) => onPatch({ leatherFinish })} columns={4} />
+          </Row>
+        )}
         {metalStrap ? (
-          <p className="hint">Metal bracelets follow the case material.</p>
+          <p className="hint">Metal bracelets follow the case material and finish.</p>
         ) : (
           <Row label={d.strapType === 'nato' ? 'Base colour (stripes use accent)' : 'Colour'}>
             <SwatchRow colors={STRAP_SWATCHES} value={d.strapColor} onChange={(strapColor) => onPatch({ strapColor })} />

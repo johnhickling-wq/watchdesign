@@ -7,13 +7,17 @@ import {
 import { PRESETS } from './presets';
 import type {
   BezelStyle,
+  CaseFinish,
   CaseShape,
+  CrownStyle,
   DialTexture,
   FontId,
   HandColor,
   HandStyle,
   IndexStyle,
+  LeatherFinish,
   LogoMark,
+  LugStyle,
   MarkerColor,
   MaterialId,
   MinuteTrack,
@@ -57,7 +61,11 @@ const INDEXES: IndexStyle[] = ['baton', 'baton', 'arabic', 'roman', 'dots', 'mix
 const MARKERS: MarkerColor[] = ['auto', 'auto', 'silver', 'gold', 'black', 'white', 'accent', 'lume'];
 const HANDS: HandStyle[] = ['dauphine', 'sword', 'baton', 'mercedes', 'syringe', 'snowflake', 'leaf'];
 const HAND_COLORS_POOL: HandColor[] = ['silver', 'silver', 'gold', 'rose', 'black', 'white', 'blued'];
-const STRAPS: StrapType[] = ['leather', 'leather', 'rubber', 'nato', 'oyster', 'jubilee', 'mesh'];
+const STRAPS: StrapType[] = ['leather', 'leather', 'rubber', 'nato', 'oyster', 'jubilee', 'president', 'mesh'];
+const LUGS_POOL: LugStyle[] = ['tapered', 'tapered', 'straight', 'twisted', 'wire', 'hooded', 'integrated'];
+const CROWNS_POOL: CrownStyle[] = ['knurled', 'knurled', 'onion', 'cabochon'];
+const FINISH_POOL: CaseFinish[] = ['polished', 'polished', 'brushed', 'mixed', 'matte'];
+const LEATHER_POOL: LeatherFinish[] = ['grained', 'grained', 'smooth', 'alligator', 'rally'];
 const FONT_POOL: FontId[] = ['marcellus', 'playfair', 'jost', 'jost', 'oswald', 'orbitron'];
 const MARKS: LogoMark[] = ['none', 'none', 'diamond', 'circle', 'triangle', 'star'];
 const SUB_LABELS = [
@@ -86,6 +94,12 @@ export function randomDesign(current?: WatchDesign): WatchDesign {
     strapColor: pick(STRAP_SWATCHES),
     background: current?.background ?? skeleton.background,
   };
+  if (chance(0.5)) d.lugStyle = pick(LUGS_POOL);
+  d.lugWidthMm = 18 + Math.floor(Math.random() * 7);
+  if (chance(0.5)) d.caseFinish = pick(FINISH_POOL);
+  if (chance(0.4)) d.crownStyle = pick(CROWNS_POOL);
+  d.crownGuards = chance(0.2);
+  if (d.strapType === 'leather') d.leatherFinish = pick(LEATHER_POOL);
   if (chance(0.5)) d.bezelStyle = pick(BEZELS);
   if (d.bezelStyle === 'dive' || d.bezelStyle === 'tachymeter') d.bezelColor = pick(BEZEL_SWATCHES);
   if (chance(0.6)) d.handStyle = pick(HANDS);
@@ -117,9 +131,16 @@ const MUTATORS: Mutator[] = [
   },
   (d) => (d.caseMaterial = pick(MATERIALS_POOL)),
   (d) => (d.caseShape = pick(CASE_SHAPES)),
+  (d) => (d.lugStyle = pick(LUGS_POOL)),
+  (d) => (d.caseFinish = pick(FINISH_POOL)),
+  (d) => {
+    d.crownStyle = pick(CROWNS_POOL);
+    d.crownGuards = Math.random() < 0.25;
+  },
   (d) => {
     d.strapType = pick(STRAPS);
     d.strapColor = pick(STRAP_SWATCHES);
+    if (d.strapType === 'leather') d.leatherFinish = pick(LEATHER_POOL);
   },
   (d) => (d.strapColor = pick(STRAP_SWATCHES)),
   (d) => (d.numeralFont = pick(FONT_POOL)),

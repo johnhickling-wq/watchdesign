@@ -11,7 +11,8 @@ manufacturing.
 
 Every visible element of the watch is adjustable, live:
 
-- **Case** — round, cushion, tonneau, square or octagon · steel, gold, rose gold, titanium, black PVD or bronze · 36–46 mm
+- **Case** — round, cushion, tonneau, square or octagon · steel, gold, rose gold, titanium, black PVD or bronze · 36–46 mm · polished, brushed, two-finish (with polished chamfers) or matte
+- **Lugs & crown** — tapered, straight, lyre, wire, hooded or fully integrated lugs · 18–24 mm lug width · knurled, onion or cabochon crown · optional crown guards
 - **Bezel** — polished, fluted, coin-edge, dive (with insert colour), tachymeter, or slim
 - **Dial** — 20 curated colours plus a free colour picker · matte, sunburst, guilloché, waves, linen, fumé or starlit textures
 - **Minute track** — ticks, railroad, dots, or clean
@@ -19,7 +20,7 @@ Every visible element of the watch is adjustable, live:
 - **Hands** — dauphine, sword, baton, Mercedes, syringe, snowflake or leaf · six finishes incl. heat-blued · optional lume
 - **Logo & text** — brand name, model name, dial caption, emblem mark, above/below placement, brand typeface
 - **Extras** — date window at 3 or 6, accent colour for the seconds hand and details
-- **Strap** — leather (with stitching), rubber, striped NATO, link bracelet, five-link, or Milanese mesh
+- **Strap** — leather (smooth, grained, alligator or perforated rally), rubber, striped NATO, link bracelet, five-link, President, or Milanese mesh — rendered with the cues of real flat-lay product shots: a single light source, value falloff and link foreshortening along the band, scalloped link silhouettes, contoured end links and a detailed deployant clasp
 
 ## Creative tools
 

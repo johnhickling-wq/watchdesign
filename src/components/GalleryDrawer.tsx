@@ -1,4 +1,4 @@
-import type { WatchDesign } from '../model/types';
+import { DEFAULT_DESIGN, type WatchDesign } from '../model/types';
 import { WatchSVG } from '../render/WatchSVG';
 
 export interface SavedDesign {
@@ -14,7 +14,11 @@ export function loadGallery(): SavedDesign[] {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
     const list = JSON.parse(raw) as SavedDesign[];
-    return Array.isArray(list) ? list.filter((s) => s?.design?.v === 1) : [];
+    if (!Array.isArray(list)) return [];
+    // older saves may predate newer design fields — backfill defaults
+    return list
+      .filter((s) => s?.design?.v === 1)
+      .map((s) => ({ ...s, design: { ...DEFAULT_DESIGN, ...s.design } }));
   } catch {
     return [];
   }

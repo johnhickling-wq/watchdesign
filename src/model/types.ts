@@ -7,7 +7,11 @@ export type IndexStyle = 'baton' | 'arabic' | 'roman' | 'dots' | 'mixed' | 'mini
 export type MarkerColor = 'auto' | 'silver' | 'gold' | 'black' | 'white' | 'accent' | 'lume';
 export type HandStyle = 'dauphine' | 'sword' | 'baton' | 'mercedes' | 'syringe' | 'snowflake' | 'leaf';
 export type HandColor = 'silver' | 'gold' | 'rose' | 'black' | 'white' | 'blued';
-export type StrapType = 'leather' | 'rubber' | 'nato' | 'oyster' | 'jubilee' | 'mesh';
+export type StrapType = 'leather' | 'rubber' | 'nato' | 'oyster' | 'jubilee' | 'president' | 'mesh';
+export type LugStyle = 'tapered' | 'straight' | 'twisted' | 'wire' | 'hooded' | 'integrated';
+export type CrownStyle = 'knurled' | 'onion' | 'cabochon';
+export type CaseFinish = 'polished' | 'brushed' | 'mixed' | 'matte';
+export type LeatherFinish = 'smooth' | 'grained' | 'alligator' | 'rally';
 export type FontId = 'marcellus' | 'playfair' | 'jost' | 'oswald' | 'orbitron';
 export type LogoMark = 'none' | 'diamond' | 'circle' | 'triangle' | 'star';
 export type LogoPosition = 'top' | 'bottom';
@@ -27,6 +31,11 @@ export interface WatchDesign {
   caseShape: CaseShape;
   caseMaterial: MaterialId;
   caseMm: number; // 36..46
+  caseFinish: CaseFinish;
+  lugStyle: LugStyle;
+  lugWidthMm: number; // 18..24
+  crownStyle: CrownStyle;
+  crownGuards: boolean;
 
   bezelStyle: BezelStyle;
   bezelColor: string; // insert colour for dive / tachymeter
@@ -47,6 +56,7 @@ export interface WatchDesign {
 
   strapType: StrapType;
   strapColor: string;
+  leatherFinish: LeatherFinish;
 
   background: BackgroundId;
 }
@@ -63,6 +73,11 @@ export const DEFAULT_DESIGN: WatchDesign = {
   caseShape: 'round',
   caseMaterial: 'steel',
   caseMm: 40,
+  caseFinish: 'polished',
+  lugStyle: 'tapered',
+  lugWidthMm: 20,
+  crownStyle: 'knurled',
+  crownGuards: false,
   bezelStyle: 'smooth',
   bezelColor: '#16243d',
   dialColor: '#2c3e5d',
@@ -77,5 +92,6 @@ export const DEFAULT_DESIGN: WatchDesign = {
   dateWindow: '3',
   strapType: 'leather',
   strapColor: '#3a2a20',
+  leatherFinish: 'grained',
   background: 'slate',
 };

@@ -1,7 +1,7 @@
 import { MATERIALS } from './colors';
 import type {
-  BezelStyle, CaseShape, DateWindow, DialTexture, HandColor, HandStyle,
-  IndexStyle, LogoMark, MarkerColor, MinuteTrack, StrapType, WatchDesign,
+  BezelStyle, CaseFinish, CaseShape, CrownStyle, DateWindow, DialTexture, HandColor, HandStyle,
+  IndexStyle, LeatherFinish, LogoMark, LugStyle, MarkerColor, MinuteTrack, StrapType, WatchDesign,
 } from './types';
 
 export const CASE_SHAPE_LABELS: Record<CaseShape, string> = {
@@ -42,7 +42,24 @@ export const HAND_COLOR_LABELS: Record<HandColor, string> = {
 
 export const STRAP_LABELS: Record<StrapType, string> = {
   leather: 'Leather', rubber: 'Rubber', nato: 'NATO', oyster: 'Link bracelet',
-  jubilee: 'Five-link', mesh: 'Milanese',
+  jubilee: 'Five-link', president: 'President', mesh: 'Milanese',
+};
+
+export const LUG_LABELS: Record<LugStyle, string> = {
+  tapered: 'Tapered', straight: 'Straight', twisted: 'Lyre', wire: 'Wire',
+  hooded: 'Hooded', integrated: 'Integrated',
+};
+
+export const CROWN_LABELS: Record<CrownStyle, string> = {
+  knurled: 'Knurled', onion: 'Onion', cabochon: 'Cabochon',
+};
+
+export const FINISH_LABELS: Record<CaseFinish, string> = {
+  polished: 'Polished', brushed: 'Brushed', mixed: 'Two-finish', matte: 'Matte',
+};
+
+export const LEATHER_LABELS: Record<LeatherFinish, string> = {
+  smooth: 'Smooth', grained: 'Grained', alligator: 'Alligator', rally: 'Rally',
 };
 
 export const MARK_LABELS: Record<LogoMark, string> = {
@@ -60,16 +77,28 @@ export interface SpecRow {
 
 export function specSheet(d: WatchDesign): SpecRow[] {
   const rows: SpecRow[] = [
-    { label: 'Case', value: `${CASE_SHAPE_LABELS[d.caseShape]} · ${d.caseMm} mm · ${MATERIALS[d.caseMaterial].label.toLowerCase()}` },
+    {
+      label: 'Case',
+      value: `${CASE_SHAPE_LABELS[d.caseShape]} · ${d.caseMm} mm · ${MATERIALS[d.caseMaterial].label.toLowerCase()} · ${FINISH_LABELS[d.caseFinish].toLowerCase()}`,
+    },
+    {
+      label: 'Lugs',
+      value: d.lugStyle === 'integrated' ? 'Integrated' : `${LUG_LABELS[d.lugStyle]} · ${d.lugWidthMm} mm`,
+    },
     { label: 'Bezel', value: BEZEL_LABELS[d.bezelStyle] },
     { label: 'Dial', value: `${TEXTURE_LABELS[d.dialTexture]} · ${d.dialColor.toUpperCase()}` },
     { label: 'Markers', value: `${INDEX_LABELS[d.indexStyle]} · ${MARKER_LABELS[d.markerColor].toLowerCase()}` },
     { label: 'Hands', value: `${HAND_LABELS[d.handStyle]} · ${HAND_COLOR_LABELS[d.handColor].toLowerCase()}` },
-    { label: 'Strap', value: STRAP_LABELS[d.strapType] },
+    {
+      label: 'Strap',
+      value: d.strapType === 'leather' ? `Leather · ${LEATHER_LABELS[d.leatherFinish].toLowerCase()}` : STRAP_LABELS[d.strapType],
+    },
   ];
   const extras: string[] = [];
   if (d.dateWindow !== 'none') extras.push(`date at ${d.dateWindow}`);
   if (d.lume) extras.push('Super-Glow lume');
+  if (d.crownGuards) extras.push('crown guards');
+  if (d.crownStyle !== 'knurled') extras.push(`${CROWN_LABELS[d.crownStyle].toLowerCase()} crown`);
   if (extras.length) rows.push({ label: 'Details', value: extras.join(' · ') });
   return rows;
 }

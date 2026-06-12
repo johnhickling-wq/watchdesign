@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type {
-  BezelStyle, CaseShape, DialTexture, HandStyle, IndexStyle, LogoMark, MinuteTrack, StrapType,
+  BezelStyle, CaseShape, CrownStyle, DialTexture, HandStyle, IndexStyle,
+  LeatherFinish, LogoMark, LugStyle, MinuteTrack, StrapType,
 } from '../model/types';
 import { handShape } from './hands';
 
@@ -254,9 +255,106 @@ export function StrapIcon({ type }: { type: StrapType }) {
             ))}
           </g>
         ))}
+      {type === 'president' &&
+        [7.5, 12.5, 17.5, 22.5].map((y) => (
+          <g key={y} opacity={0.85}>
+            {[0, 4.2, 8.4].map((dx) => (
+              <rect key={dx} x={x + 0.4 + dx} y={y} width={3.4} height={4.2} rx={1.8} fill="none" stroke="currentColor" strokeWidth={0.9} />
+            ))}
+          </g>
+        ))}
       {type === 'mesh' &&
         [5, 8, 11, 14, 17, 20, 23].map((y) => (
           <line key={y} x1={x + 1} y1={y} x2={x + w - 1} y2={y} stroke="currentColor" strokeWidth={0.7} opacity={0.7} />
+        ))}
+    </Frame>
+  );
+}
+
+export function LugIcon({ style }: { style: LugStyle }) {
+  // case arc at the bottom, lugs reaching up toward a strap bar
+  const caseArc = <path d="M4,27 A13.5,13.5 0 0 1 26,27" fill="none" stroke="currentColor" strokeWidth={2} />;
+  return (
+    <Frame>
+      {caseArc}
+      {style === 'tapered' && (
+        <>
+          <path d="M8,20 L6.5,7 Q6.5,5.5 8,5.5 Q9.5,5.5 9.7,7 L11,20" fill="currentColor" opacity={0.9} />
+          <path d="M22,20 L23.5,7 Q23.5,5.5 22,5.5 Q20.5,5.5 20.3,7 L19,20" fill="currentColor" opacity={0.9} />
+        </>
+      )}
+      {style === 'straight' && (
+        <>
+          <rect x={6.5} y={5.5} width={4} height={15} rx={1.2} fill="currentColor" opacity={0.9} />
+          <rect x={19.5} y={5.5} width={4} height={15} rx={1.2} fill="currentColor" opacity={0.9} />
+        </>
+      )}
+      {style === 'twisted' && (
+        <>
+          <path d="M7,20 C5,14 7.5,11 6.5,6 L10,5.5 C10.5,11 9,14 10.5,20 Z" fill="currentColor" opacity={0.9} />
+          <path d="M23,20 C25,14 22.5,11 23.5,6 L20,5.5 C19.5,11 21,14 19.5,20 Z" fill="currentColor" opacity={0.9} />
+        </>
+      )}
+      {style === 'wire' && (
+        <>
+          <path d="M8.5,20 C5.5,15 6,9 8,5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+          <path d="M21.5,20 C24.5,15 24,9 22,5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+        </>
+      )}
+      {style === 'hooded' && <rect x={5} y={9} width={20} height={8} rx={3} fill="currentColor" opacity={0.9} />}
+      {style === 'integrated' && (
+        <path d="M6,20 C7,13 9,9 10.5,4 L19.5,4 C21,9 23,13 24,20 Z" fill="currentColor" opacity={0.9} />
+      )}
+    </Frame>
+  );
+}
+
+export function CrownIcon({ style }: { style: CrownStyle }) {
+  return (
+    <Frame>
+      {/* case edge on the left */}
+      <path d="M9,3 A24,24 0 0 1 9,27" fill="none" stroke="currentColor" strokeWidth={2} />
+      {style === 'knurled' && (
+        <>
+          <rect x={13} y={9} width={7} height={12} rx={2.5} fill="none" stroke="currentColor" strokeWidth={1.8} />
+          {[12.5, 15, 17.5].map((y) => (
+            <line key={y} x1={14.5} y1={y} x2={18.5} y2={y} stroke="currentColor" strokeWidth={1.1} opacity={0.8} />
+          ))}
+        </>
+      )}
+      {style === 'onion' && (
+        <>
+          <rect x={12.5} y={13} width={4} height={4} fill="currentColor" />
+          <circle cx={21} cy={15} r={5.5} fill="none" stroke="currentColor" strokeWidth={1.8} />
+          <line x1={21} y1={10.5} x2={21} y2={19.5} stroke="currentColor" strokeWidth={1} opacity={0.7} />
+        </>
+      )}
+      {style === 'cabochon' && (
+        <>
+          <rect x={12.5} y={11.5} width={6} height={7} rx={2} fill="none" stroke="currentColor" strokeWidth={1.6} />
+          <ellipse cx={22.5} cy={15} rx={3.6} ry={4} fill="currentColor" />
+        </>
+      )}
+    </Frame>
+  );
+}
+
+export function LeatherIcon({ finish }: { finish: LeatherFinish }) {
+  const body = <rect x={9} y={3} width={12} height={24} rx={3} fill="none" stroke="currentColor" strokeWidth={1.8} />;
+  return (
+    <Frame>
+      {body}
+      {finish === 'grained' &&
+        [[12, 8], [17, 6.5], [14, 12], [18, 15], [12.5, 17], [16, 21], [13, 24], [18.5, 23.5], [17.5, 10.5], [12, 21]].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r={0.8} fill="currentColor" opacity={0.7} />
+        ))}
+      {finish === 'alligator' &&
+        [[11, 6], [16, 6], [13.5, 12], [11, 18], [16, 18], [13.5, 24]].map(([x, y], i) => (
+          <rect key={i} x={x} y={y} width={3.6} height={4.6} rx={1.2} fill="none" stroke="currentColor" strokeWidth={0.9} opacity={0.8} />
+        ))}
+      {finish === 'rally' &&
+        [[15, 8], [15, 14], [15, 20]].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r={2.2} fill="currentColor" opacity={0.85} />
         ))}
     </Frame>
   );

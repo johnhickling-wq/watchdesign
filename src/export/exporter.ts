@@ -145,7 +145,7 @@ export async function exportConceptSheet(svgEl: SVGSVGElement, design: WatchDesi
   ctx.stroke();
 
   // spec rows
-  y += 64;
+  y += 60;
   ctx.font = `500 21px 'Jost', sans-serif`;
   for (const row of specSheet(design)) {
     ctx.fillStyle = inkSoft;
@@ -154,14 +154,14 @@ export async function exportConceptSheet(svgEl: SVGSVGElement, design: WatchDesi
     ctx.font = `400 26px 'Jost', sans-serif`;
     ctx.fillText(row.value, x + 200, y);
     ctx.font = `500 21px 'Jost', sans-serif`;
-    y += 52;
+    y += 46;
   }
 
   // palette
-  y += 36;
+  y += 30;
   ctx.fillStyle = inkSoft;
   spaced(ctx, 'PALETTE', x, y, 3);
-  y += 30;
+  y += 26;
   const metal = MATERIALS[design.caseMaterial];
   const swatches: Array<[string, string]> = [
     ['Case', metal.mid],
@@ -184,15 +184,15 @@ export async function exportConceptSheet(svgEl: SVGSVGElement, design: WatchDesi
     ctx.fillStyle = inkSoft;
     ctx.font = `400 19px 'Jost', sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(label, sx + 34, y + 96);
-    ctx.fillText(color.toUpperCase(), sx + 34, y + 120);
+    ctx.fillText(label, sx + 34, y + 92);
+    ctx.fillText(color.toUpperCase(), sx + 34, y + 114);
     ctx.textAlign = 'left';
   });
 
   // footer
   ctx.fillStyle = inkFaint;
   ctx.font = `400 20px 'Jost', sans-serif`;
-  spaced(ctx, 'CONCEPT ONLY · MADE FOR FUN IN WATCHLAB', x, H - 90, 3);
+  spaced(ctx, 'CONCEPT ONLY · MADE FOR FUN IN WATCHLAB', x, H - 42, 3);
 
   return canvasToBlob(canvas);
 }
